@@ -1,12 +1,6 @@
 package dsi.soutenance.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,8 +13,7 @@ import org.hibernate.annotations.Where;
 import java.time.LocalDate;
 import java.util.List;
 
-import jakarta.persistence.OneToOne;
-
+@Table(name = "Demande")
 @Entity
 @Getter
 @Setter
@@ -33,14 +26,15 @@ public class Demande {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String categorie;
     private String typeDemande;
+    private String typeDemandeur;
     private String statut;
     private Long prix;
     private Long numeroDemande;
     private String codeDemande;
     private LocalDate dateDepot;
     private LocalDate dateValidation;
+
     private boolean deleted = false;
 
     @OneToMany(mappedBy = "demande")
@@ -49,10 +43,12 @@ public class Demande {
     @OneToMany(mappedBy = "demande")
     private List<PieceJointe> pieceJointe;
 
-    @OneToOne(mappedBy = "demande")
+    @OneToOne
+    @JoinColumn(name = "demandeurMoraleId")
     private DemandeurMorale demandeurMorale;
 
-    @OneToOne(mappedBy = "demande")
+    @OneToOne
+    @JoinColumn(name = "demandeurPhysiqueId")
     private DemandeurPhysique demandeurPhysique;
 
     @ManyToOne

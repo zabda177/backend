@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.boot.autoconfigure.info.ProjectInfoProperties;
-
 import dsi.soutenance.model.Demande;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 @NoArgsConstructor // Ajoute un constructeur par défaut
 @Builder
 public class SoumissionDto {
+
     // Propriete demandeurMorale
     private Long id;
     private String ifu;
@@ -43,10 +42,10 @@ public class SoumissionDto {
     private String telephoneP1;
     private String telephoneP2;
     private String mailP;
-    // propiete de demande
-    private String categorie;
-    private String typeDemande;
 
+    // propiete de demande
+    private String typeDemande;
+    private String typeDemandeur;
     private String statut;
     private Long prix;
     private Long numeroDemande;
@@ -55,20 +54,21 @@ public class SoumissionDto {
     private LocalDate dateValidation;
     private MultipartFile fichier;
 
+
     private String libelle;
     private String url;
 
     List<PieceJointeDto> pieceJointes = new ArrayList<>();
     public static DemandeurMorale toDemandeurMorale(SoumissionDto soumissionDto) {
         return DemandeurMorale.builder()
-                .id(soumissionDto.id)
-                .ifu(soumissionDto.ifu)
-                .denomination(soumissionDto.denomination)
-                .siege(soumissionDto.siege)
-                .nomResponsable(soumissionDto.nomResponsable)
-                .mail(soumissionDto.mail)
-                .telephone1(soumissionDto.telephone1)
-                .telephone2(soumissionDto.telephone2)
+                .id(soumissionDto.getId())
+                .ifu(soumissionDto.getIfu())
+                .denomination(soumissionDto.getDenomination())
+                .siege(soumissionDto.getSiege())
+                .nomResponsable(soumissionDto.getNomResponsable())
+                .mail(soumissionDto.getMail())
+                .telephone1(soumissionDto.getTelephone1())
+                .telephone2(soumissionDto.getTelephone2())
                 .build();
 
     }
@@ -76,17 +76,17 @@ public class SoumissionDto {
 
     public static DemandeurPhysique toDemandeurPhysique(SoumissionDto soumissionDto) {
         return DemandeurPhysique.builder()
-                .id(soumissionDto.id)
-                .nom(soumissionDto.nom)
-                .prenom(soumissionDto.prenom)
-                .genre(soumissionDto.genre)
-                .dateNaisse(soumissionDto.dateNaisse)
-                .lieuResidence(soumissionDto.lieuResidence)
-                .telephoneP1(soumissionDto.telephoneP1)
-                .telephoneP2(soumissionDto.telephoneP2)
-                .mailP(soumissionDto.mailP)
-                .typePiece(soumissionDto.typePiece)
-                .numPiece(soumissionDto.numPiece)
+                .id(soumissionDto.getId())
+                .nom(soumissionDto.getNom())
+                .prenom(soumissionDto.getPrenom())
+                .genre(soumissionDto.getGenre())
+                .dateNaisse(soumissionDto.getDateNaisse())
+                .lieuResidence(soumissionDto.getLieuResidence())
+                .telephoneP1(soumissionDto.getTelephoneP1())
+                .telephoneP2(soumissionDto.getTelephoneP2())
+                .mailP(soumissionDto.getMailP())
+                .typePiece(soumissionDto.getTypePiece())
+                .numPiece(soumissionDto.getNumPiece())
                 .build();
     }
 
@@ -104,29 +104,18 @@ public class SoumissionDto {
 
     public static Demande toDemande(SoumissionDto soumissionDto) {
         return Demande.builder()
-                .id(soumissionDto.id)
-                .categorie(soumissionDto.categorie)
-                .typeDemande(soumissionDto.typeDemande)
-                .prix(soumissionDto.prix)
-                .numeroDemande(soumissionDto.numeroDemande)
-                .codeDemande(soumissionDto.codeDemande)
-                .statut(soumissionDto.statut)
-                .dateDepot(soumissionDto.dateDepot)
-                .dateValidation(soumissionDto.dateValidation)
+                .id(soumissionDto.getId())
+                .typeDemande(soumissionDto.getTypeDemande())
+                .typeDemandeur(soumissionDto.getTypeDemandeur())
+                .prix(soumissionDto.getPrix())
+                .numeroDemande(soumissionDto.getNumeroDemande())
+                .codeDemande(soumissionDto.getCodeDemande())
+                .statut(soumissionDto.getStatut())
+                .dateDepot(soumissionDto.getDateDepot())
+                .dateValidation(soumissionDto.getDateValidation())
+
                 .build();
     }
-
-
-        // Getters et setters avec conversion de type si nécessaire
-        public void setNumeroDemande(String numeroDemande) {
-            this.numeroDemande = numeroDemande != null && !numeroDemande.isEmpty() ?
-                    Long.parseLong(numeroDemande) : null;
-        }
-
-        public void setDateDepot(String dateDepot) {
-            this.dateDepot = dateDepot != null && !dateDepot.isEmpty() ?
-                    LocalDate.parse(dateDepot) : null;
-        }
 
 
 }

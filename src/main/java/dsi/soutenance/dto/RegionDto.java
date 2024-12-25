@@ -25,9 +25,9 @@ public class RegionDto {
     }
     public static Region toEntity( RegionDto regionDto) {
         return  Region.builder()
-                .id(regionDto.id)
-                .libelle(regionDto.libelle)
-                .codeDgess(regionDto.codeDgess)
+                .id(regionDto.getId())
+                .libelle(regionDto.getLibelle())
+                .codeDgess(regionDto.getCodeDgess())
                 .build();
     }
 }

@@ -3,6 +3,7 @@ package dsi.soutenance.controleur;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import dsi.soutenance.model.Demande;
 import dsi.soutenance.model.DemandeurPhysique;
@@ -11,20 +12,13 @@ import dsi.soutenance.repositorie.DemandeRepository;
 import dsi.soutenance.repositorie.DemandeurMoraleRepository;
 import dsi.soutenance.repositorie.DemandeurPhysiqueRepository;
 import dsi.soutenance.repositorie.PieceJointeRepository;
+import dsi.soutenance.service.PieceJointeService;
+import dsi.soutenance.serviceimpl.DemandeurPhysiqueServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import dsi.soutenance.dto.DashboardStats;
@@ -40,7 +34,8 @@ import dsi.soutenance.serviceimpl.DemandeurMoraleServiceImpl;
 
 @RestController
 @RequestMapping("/api/demande")
-@CrossOrigin("*")
+//@CrossOrigin("*")
+@CrossOrigin(origins = {"http://localhost:4200",  "http://127.0.0.1:4200"})
 public class DemandeController {
     @Autowired
     DemandeurMoraleRepository demandeurMoraleRepository;
@@ -55,8 +50,11 @@ public class DemandeController {
     FileStorageService fileStorageService;
     @Autowired
     private DemandeService demandeService;
-
+    @Autowired
+    private PieceJointeService pieceJointeService;
+    @Autowired
     private final DemandeurMoraleServiceImpl demandeurMoraleService;
+
 
     public DemandeController(dsi.soutenance.serviceimpl.DemandeurMoraleServiceImpl demandeurMoraleService) {
         this.demandeurMoraleService = demandeurMoraleService;
@@ -64,97 +62,58 @@ public class DemandeController {
 
 
 
-    // Soumission du formulaire
-    @PostMapping(value = "/soumission", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity<?> soumissionDto(@ModelAttribute SoumissionDto soumissionDto) {
-        try {
-            // Vérifier le type de demandeur
-            if (isMoralRequest(soumissionDto)) {
-                // Cas d'un demandeur morale
-                return handleMoraleRequest(soumissionDto);
-            } else {
-                // Cas d'un demandeur physique
-                return handlePhysiqueRequest(soumissionDto);
-            }
-        } catch (Exception e) {
-            // Gestion générique des erreurs
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erreur lors de l'enregistrement de la demande : " + e.getMessage());
-        }
+    @PostMapping(value = "/soumission")
+    public ResponseEntity<DemandeDto> soumissionDto(@ModelAttribute SoumissionDto soumissionDto) {
+            DemandeDto demandeDto = demandeService.saveSoumission(soumissionDto);
+            return ResponseEntity.ok(demandeDto);
     }
 
-    private boolean isMoralRequest(SoumissionDto soumissionDto) {
-        // Logique pour déterminer si c'est une demande morale
-        return soumissionDto.getIfu() != null && !soumissionDto.getIfu().isEmpty();
+//    @PostMapping(value = "send-demande-files", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+//    public ResponseEntity<?> sendFile(@ModelAttribute List<PieceJointeDto> pieceJointeDtos, long demandeId) {
+//        DemandeDto demandeDto = demandeService.saveSoumission(pieceJointeDto);
+//        return ResponseEntity.ok(demandeDto);
+//  }
+@PostMapping(value = "send-files", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+//public ResponseEntity<?> sendFile(@ModelAttribute List<PieceJointeDto> pieceJointeDtos, @RequestParam long demandeId) {
+//    try {
+//        // Sauvegarde des pièces jointes
+//        List<PieceJointeDto> savedPieces = pieceJointeService.savePiecesJointes(pieceJointeDtos, demandeId);
+//
+//        // Récupérer la demande mise à jour
+//        DemandeDto demandeDto = demandeService.getById(demandeId);
+//
+//        return ResponseEntity.ok(demandeDto);
+//    } catch (Exception e) {
+//        // Gestion des exceptions
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur lors de la sauvegarde des pièces jointes : " + e.getMessage());
+//    }
+//}
+
+public ResponseEntity<?> sendFile(
+        @RequestPart("files") List<MultipartFile> files,
+        @RequestParam long demandeId) {
+    try {
+        // Convertir les fichiers en DTO ou entités
+        List<PieceJointeDto> pieceJointeDtos = files.stream().map(file -> {
+            PieceJointeDto dto = new PieceJointeDto();
+//            dto.setNomFichier(file.getOriginalFilename());
+//            dto.setContenu(file.getBytes());
+            return dto;
+        }).toList();
+
+        // Sauvegarde des pièces jointes
+        List<PieceJointeDto> savedPieces = pieceJointeService.savePiecesJointes(pieceJointeDtos, demandeId);
+
+        // Récupérer la demande mise à jour
+        DemandeDto demandeDto = demandeService.getById(demandeId);
+
+        return ResponseEntity.ok(demandeDto);
+    } catch (Exception e) {
+        // Gestion des exceptions
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Erreur lors de la sauvegarde des pièces jointes : " + e.getMessage());
     }
-
-    private ResponseEntity<DemandeDto> handleMoraleRequest(SoumissionDto soumissionDto) {
-        // 1. Créer et sauvegarder le demandeur morale
-        DemandeurMorale demandeurMorale = SoumissionDto.toDemandeurMorale(soumissionDto);
-        demandeurMorale = demandeurMoraleRepository.save(demandeurMorale);
-
-        // 2. Créer la demande et l'associer au demandeur morale
-        Demande demande = SoumissionDto.toDemande(soumissionDto);
-        demande.setDemandeurMorale(demandeurMorale);
-       // demande.setNumeroDemande(generateNumeroDemande()); // Méthode de génération de numéro
-       // demande.setCodeDemande(generateCode()); // Méthode de génération de code
-
-        // 3. Sauvegarder la demande
-        demande = demandeRepository.save(demande);
-
-        // 4. Gérer les pièces jointes
-        handlePieceJointes(soumissionDto, demande);
-
-        // 5. Convertir et retourner
-        return new ResponseEntity<>(DemandeDto.fromEntity(demande), HttpStatus.CREATED);
-    }
-
-    private ResponseEntity<DemandeDto> handlePhysiqueRequest(SoumissionDto soumissionDto) {
-        // 1. Créer et sauvegarder le demandeur physique
-        DemandeurPhysique demandeurPhysique = SoumissionDto.toDemandeurPhysique(soumissionDto);
-        demandeurPhysique = demandeurPhysiqueRepository.save(demandeurPhysique);
-
-        // 2. Créer la demande et l'associer au demandeur physique
-        Demande demande = SoumissionDto.toDemande(soumissionDto);
-        demande.setDemandeurPhysique(demandeurPhysique);
-       // demande.setNumeroDemande(generateNumeroDemande()); // Méthode de génération de numéro
-       // demande.setCodeDemande(generateCode()); // Méthode de génération de code
-
-        // 3. Sauvegarder la demande
-        demande = demandeRepository.save(demande);
-
-        // 4. Gérer les pièces jointes
-        handlePieceJointes(soumissionDto, demande);
-
-        // 5. Convertir et retourner
-        return new ResponseEntity<>(DemandeDto.fromEntity(demande), HttpStatus.CREATED);
-    }
-
-    private void handlePieceJointes(SoumissionDto soumissionDto, Demande demande) {
-        if (soumissionDto.getPieceJointes() != null) {
-            for (PieceJointeDto pieceJointeDto : soumissionDto.getPieceJointes()) {
-                PieceJointe pieceJointe = PieceJointeDto.toEntity(pieceJointeDto);
-                pieceJointe.setDemande(demande);
-
-                // Sauvegarde du fichier
-                try {
-                    String fileName = fileStorageService.storeFile(
-                            pieceJointeDto.getFichier(),
-                            "piece jointes",
-                            demande.getId().toString()
-                    );
-                    pieceJointe.setUrl(fileName);
-                } catch (IOException e) {
-                    // Gérer l'erreur de sauvegarde de fichier
-                    throw new RuntimeException("Erreur lors de la sauvegarde du fichier", e);
-                }
-
-                // Sauvegarde de la pièce jointe
-                pieceJointeRepository.save(pieceJointe);
-            }
-        }
-    }
-
+}
 
     @GetMapping("/listSoumission")
     public List<SoumissionDto> findAll() {
@@ -177,8 +136,16 @@ public class DemandeController {
         List<SoumissionDto> demandes = demandeService.findByIdAndStatutEnCoursDeTraitement();
         return ResponseEntity.ok(demandes);
     }
+    @PostMapping("/demande")
+    public ResponseEntity<DemandeDto> saveSomission(@RequestBody  SoumissionDto soumissionDto) {
+        // Enregistrer les données de demandes
+        DemandeDto demandeDto= demandeService.saveSoumission(soumissionDto);
+        return ResponseEntity.ok(demandeDto);
+    }
 
-    @PostMapping("/demande-agrement")
+
+
+    @PostMapping("/demandes")
     public ResponseEntity<Long> create(@RequestBody DemandeDto demandeDto) {
         // Enregistrer les ddonnées de demandes
 
@@ -191,7 +158,7 @@ public class DemandeController {
         return ResponseEntity.ok("OK");
     }
 
-    @PutMapping("/demande-agrement")
+    @PutMapping("/demande")
     public ResponseEntity<Long> update(@RequestBody DemandeDto demandeDto) {
         return ResponseEntity.ok(demandeService.save(demandeDto));
     }
@@ -238,6 +205,14 @@ public class DemandeController {
 
     }
 
+    @GetMapping("demande-details/{id}")
+    public ResponseEntity<Map<String, Object>> getDemandeDetails(@PathVariable Long id) {
+        Map<String, Object> response = demandeService.getDemandeDetails(id);
+        return ResponseEntity.ok(response);
+    }
+
+
+
     @PutMapping("/{id}/valide")
     public ResponseEntity<SoumissionDto> valideDemande(@PathVariable Long id) {
         SoumissionDto demandeValide = demandeService.valideDemande(id);
@@ -267,12 +242,7 @@ public class DemandeController {
         return demandeService.getDashboardStats();
     }
 
-//    @PostMapping("/demande-agrement")
-//    public ResponseEntity<?> createDemandeAgrement(@RequestBody DemandeDto demandeDto) {
-//        // Votre logique de traitement
-//        Long id = demandeService.save(demandeDto);
-//        return ResponseEntity.ok(id);
-//    }
+
 
     @PostMapping("/envoyer-demande-avec-fichiers")
     public ResponseEntity<String> recevoirDemande(@ModelAttribute DemandeAvecFichiersDto formulaire) {

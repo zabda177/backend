@@ -1,12 +1,7 @@
 package dsi.soutenance.model;
 
 import dsi.soutenance.dto.PieceJointeDto;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,9 +26,11 @@ public class PieceJointe {
     private String libelle;
     private String url;
     private boolean deleted = false;
-    // private MultipartFile fichier;
 
-    @ManyToOne
-    @JoinColumn(name = "demande_id")
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "demande_id", nullable = false)
     private Demande demande;
+
+
 }

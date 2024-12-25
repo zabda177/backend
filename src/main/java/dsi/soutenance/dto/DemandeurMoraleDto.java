@@ -38,13 +38,13 @@ public class DemandeurMoraleDto {
     public static DemandeurMorale toEntity(DemandeurMoraleDto demandeurMoraleDto) {
         return DemandeurMorale.builder()
                 .id(demandeurMoraleDto.getId())
-                .ifu(demandeurMoraleDto.ifu)
-                .nomResponsable(demandeurMoraleDto.nomResponsable)
-                .denomination(demandeurMoraleDto.denomination)
-                .siege(demandeurMoraleDto.siege)
-                .mail(demandeurMoraleDto.mail)
-                .telephone1(demandeurMoraleDto.telephone1)
-                .telephone2(demandeurMoraleDto.telephone2)
+                .ifu(demandeurMoraleDto.getIfu())
+                .nomResponsable(demandeurMoraleDto.getNomResponsable())
+                .denomination(demandeurMoraleDto.getDenomination())
+                .siege(demandeurMoraleDto.getSiege())
+                .mail(demandeurMoraleDto.getMail())
+                .telephone1(demandeurMoraleDto.getTelephone1())
+                .telephone2(demandeurMoraleDto.getTelephone2())
                 .build();
     }
 }

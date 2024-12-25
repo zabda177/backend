@@ -15,7 +15,7 @@ import org.hibernate.annotations.Where;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-
+@Table(name = "DemandeurMorale")
 @SQLDelete(sql = "UPDATE ....")
 @Where(clause = "deleted=false")
 public class DemandeurMorale {
@@ -31,7 +31,7 @@ public class DemandeurMorale {
     private String ifu;
     private boolean deleted = false;
 
-    @OneToOne
-    @JoinColumn(name = "perssonne_Morale_id")
+
+    @OneToOne(mappedBy="demandeurMorale")
     private Demande demande;
 }

@@ -25,8 +25,8 @@ public class MaterielDto {
   public  static Materiel toEntity(MaterielDto materielDto) {
       return  Materiel.builder()
               .id(materielDto.getId())
-              .libelle(materielDto.libelle)
-              .type(materielDto.type)
+              .libelle(materielDto.getLibelle())
+              .type(materielDto.getType())
               .build();
   }
 }

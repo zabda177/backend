@@ -26,8 +26,8 @@ public class CommuneDto {
     public  static Commune toEntity(CommuneDto communeDto) {
         return  Commune.builder()
                 .id(communeDto.getId())
-                .libelle(communeDto.libelle)
-                .codeDgess(communeDto.codeDgess)
+                .libelle(communeDto.getLibelle())
+                .codeDgess(communeDto.getCodeDgess())
                 .build();
     }
 }

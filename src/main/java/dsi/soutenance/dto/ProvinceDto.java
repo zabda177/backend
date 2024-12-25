@@ -25,9 +25,9 @@ public class ProvinceDto {
 
     public static Province toEntity(ProvinceDto provinceDto){
         return  Province.builder()
-                .id(provinceDto.id)
-                .libelle(provinceDto.libelle)
-                .codeDgess(provinceDto.codeDgess)
+                .id(provinceDto.getId())
+                .libelle(provinceDto.getLibelle())
+                .codeDgess(provinceDto.getCodeDgess())
                 .build();
     }
 }

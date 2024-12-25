@@ -1,12 +1,6 @@
 package dsi.soutenance.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -22,7 +16,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-
+@Table(name="DemandeurPhysique")
 @SQLDelete(sql = "UPDATE ....")
 @Where(clause = "deleted=false")
 public class DemandeurPhysique {
@@ -41,8 +35,7 @@ public class DemandeurPhysique {
     private String numPiece;
     private boolean deleted = false;
 
-    @OneToOne
-    @JoinColumn(name = "personne_physique_Id")
-    private Demande demande;
+    @OneToOne(mappedBy = "demandeurPhysique")
+     private Demande demande;
 
 }

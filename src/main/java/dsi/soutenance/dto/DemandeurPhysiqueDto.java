@@ -19,8 +19,8 @@ public class DemandeurPhysiqueDto {
     private String genre;
     private LocalDate dateNaisse;
     private String lieuResidence;
-    private String telephone1;
-    private String telephone2;
+    private String telephoneP1;
+    private String telephoneP2;
     private String mail;
     private String typePiece;
     private String numPiece;
@@ -33,27 +33,25 @@ public class DemandeurPhysiqueDto {
                 .genre(demandeurPhysique.getGenre())
                 .dateNaisse(demandeurPhysique.getDateNaisse())
                 .lieuResidence(demandeurPhysique.getLieuResidence())
-                .telephone1(demandeurPhysique.getTelephoneP1())
-                .telephone2(demandeurPhysique.getTelephoneP2())
+                .telephoneP1(demandeurPhysique.getTelephoneP1())
+                .telephoneP1(demandeurPhysique.getTelephoneP2())
                 .mail(demandeurPhysique.getMailP())
-                .typePiece(demandeurPhysique.getTypePiece())
-                .numPiece(demandeurPhysique.getNumPiece())
+
                 .build();
     }
 
     public static DemandeurPhysique toEntity(DemandeurPhysiqueDto demandeurPhysiqueDto) {
         return DemandeurPhysique.builder()
                 .id(demandeurPhysiqueDto.getId())
-                .nom(demandeurPhysiqueDto.nom)
-                .prenom(demandeurPhysiqueDto.prenom)
-                .genre(demandeurPhysiqueDto.genre)
-                .dateNaisse(demandeurPhysiqueDto.dateNaisse)
-                .lieuResidence(demandeurPhysiqueDto.lieuResidence)
-                .telephoneP1(demandeurPhysiqueDto.telephone1)
-                .telephoneP2(demandeurPhysiqueDto.telephone2)
-                .mailP(demandeurPhysiqueDto.mail)
-                .typePiece(demandeurPhysiqueDto.typePiece)
-                .numPiece(demandeurPhysiqueDto.numPiece)
+                .nom(demandeurPhysiqueDto.getNom())
+                .prenom(demandeurPhysiqueDto.getPrenom())
+                .genre(demandeurPhysiqueDto.getGenre())
+                .dateNaisse(demandeurPhysiqueDto.getDateNaisse())
+                .lieuResidence(demandeurPhysiqueDto.getLieuResidence())
+                .telephoneP1(demandeurPhysiqueDto.getTelephoneP1())
+                .telephoneP2(demandeurPhysiqueDto.getTelephoneP2())
+                .mailP(demandeurPhysiqueDto.getMail())
+
                 .build();
     }
 }

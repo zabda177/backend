@@ -3,7 +3,9 @@ package dsi.soutenance.serviceimpl;
 import java.io.File;
 import java.io.IOException;
 import java.security.SecureRandom;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -93,7 +95,10 @@ public class DemandeServiceImpl implements DemandeService {
         return characters.charAt(index);
     }
 
-    public DemandeDto saveSomission(SoumissionDto soumissionDto) {
+    @Override
+    public DemandeDto saveSoumission(SoumissionDto soumissionDto) {
+
+        System.out.println("hello les gas");
 
         // Construction des entités depuis SoumissionDto
         DemandeurPhysique demandeurPhysique = SoumissionDto.toDemandeurPhysique(soumissionDto);
@@ -111,6 +116,8 @@ public class DemandeServiceImpl implements DemandeService {
 
         demande = demandeRepository.save(demande);
 
+        System.out.println("Voici mes pieces jointes: " +soumissionDto.getPieceJointes());
+
         // Sauvegarde des pièces jointes
         for (PieceJointeDto pieceJointeDto : soumissionDto.getPieceJointes()) {
             PieceJointe pieceJointe = PieceJointeDto.toEntity(pieceJointeDto);
@@ -118,10 +125,11 @@ public class DemandeServiceImpl implements DemandeService {
             pieceJointe.setUrl(pieceJointeDto.getUrl());
             pieceJointe.setDemande(demande);
 
-            String fileName = null;
+            String fileName;
             try {
                 fileName = fileStorageService.storeFile(pieceJointeDto.getFichier(), "piece jointes",
                         demande.getId().toString());
+                System.out.println("Fichier charger: " +fileName);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -168,8 +176,8 @@ public class DemandeServiceImpl implements DemandeService {
     private SoumissionDto toSoumissionDto(Demande demande) {
         return SoumissionDto.builder()
                 .id(demande.getId())
-                .categorie(demande.getCategorie())
                 .typeDemande(demande.getTypeDemande())
+                .typeDemandeur(demande.getTypeDemandeur())
                 .statut(demande.getStatut())
                 .prix(demande.getPrix())
                 .codeDemande(demande.getCodeDemande())
@@ -188,8 +196,8 @@ public class DemandeServiceImpl implements DemandeService {
                 .genre(demandeurPhysique.getGenre())
                 .dateNaisse((demandeurPhysique.getDateNaisse()))
                 .lieuResidence((demandeurPhysique.getLieuResidence()))
-                .telephone1((demandeurPhysique.getTelephoneP1()))
-                .telephone2((demandeurPhysique.getTelephoneP2()))
+                .telephoneP2((demandeurPhysique.getTelephoneP1()))
+                .telephoneP1((demandeurPhysique.getTelephoneP2()))
                 .mail((demandeurPhysique.getMailP()))
                 .typePiece((demandeurPhysique.getTypePiece()))
                 .numPiece(demandeurPhysique.getNumPiece())
@@ -362,20 +370,14 @@ public class DemandeServiceImpl implements DemandeService {
     // return demandeRepository.save(demande).getId();
 
     public Long save(DemandeDto demandeDto) {
-        Demande demande = demandeDto.toEntity();
+        Demande demande = demandeDto.toEntity(demandeDto);
         return demandeRepository.save(demande).getId();
     }
 
     @Override
     public void saveAll(List<DemandeDto> demandeDtos) {
-        List<Demande> demandes = demandeDtos.stream()
-                .map(dto -> dto.toEntity()) // Ou .map(DemandeDto::toEntity)
-                .collect(Collectors.toList());
-        demandeRepository.saveAll(demandes);
-        // demandeDtos.forEach(
-        // demandeDto -> {
-        // Demande demande = new demandeDto().toEntity();
-        // demandeRepository.save(demande);});
+        ;
+
     }
 
     @Override
@@ -395,34 +397,30 @@ public class DemandeServiceImpl implements DemandeService {
 
     @Override
     public void deleteAll(List<DemandeDto> demandeDtos) {
-        List<Demande> demandes = demandeDtos.stream()
-                .map(dto -> dto.toEntity())
-                .collect(Collectors.toList());
-        demandeRepository.deleteAll(demandes);
+
     }
-    /*
-     * public DemandeServiceImpl(DemandeurMoraleRepository
-     * demandeurMoraleRepository, DemandeRepository demandeRepository,
-     * DemandeurPhysique demandeurPhysique) {
-     * this.demandeRepository = demandeRepository;
-     * this.demandeurMoraleRepository = demandeurMoraleRepository;
-     * this.demandeurPhysiqueRepository = demandeurPhysiqueRepository;
-     * }
-     * 
-     * public void enregistrerDemande(DemandeAvecFichiersDto demandeAvecFichiersDto)
-     * {
-     * enregistrerFichiers(demandeAvecFichiersDto.getPieceJointes());
-     * 
-     * DemandeurMorale demandeurMorale = demandeAvecFichiersDto.toEntity();
-     * 
-     * DemandeurMorale saveDemandeurMorale =
-     * demandeurMoraleRepository.save(demandeurMorale);
-     * 
-     * Demande demande = new Demande();
-     * demande.setDemandeurMorale(saveDemandeurMorale);
-     * demandeRepository.save(demande);
-     * }
-     */
+
+
+
+    public Map<String, Object> getDemandeDetails(Long demandeId) {
+        Demande demande = demandeRepository.findById(demandeId)
+                .orElseThrow(() -> new RuntimeException("Demande non trouvée"));
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("demande", demande);
+
+        if ("demandeurPhysique".equalsIgnoreCase(demande.getTypeDemandeur())) {
+            DemandeurPhysique demandeurPhysique = demandeurPhysiqueRepository.findById(demande.getDemandeurPhysique().getId())
+                    .orElseThrow(() -> new RuntimeException("Personne physique non trouvée"));
+            response.put("demandeur", demandeurPhysique);
+        } else if ("demandeurMorale".equalsIgnoreCase(demande.getTypeDemandeur())) {
+            DemandeurMorale demandeurMorale = demandeurMoraleRepository.findById(demande.getDemandeurMorale().getId())
+                    .orElseThrow(() -> new RuntimeException("Personne morale non trouvée"));
+            response.put("demandeur", demandeurMorale);
+        }
+
+        return response;
+    }
 
     private void enregistrerFichiers(List<PieceJointeDto> pieceJointes) {
         if (pieceJointes != null) {

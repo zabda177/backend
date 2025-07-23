@@ -202,6 +202,105 @@ public class PieceJointeService {
     }
 
 
+    /**
+     * Récupère une pièce jointe par son URL
+     * @param url L'URL de la pièce jointe
+     * @return Optional contenant la PieceJointeDTO si trouvée
+     */
+    public Optional<PieceJointeDTO> getPieceJointeByUrl(String url) {
+        if (url == null || url.trim().isEmpty()) {
+            //log.warn("URL fournie est null ou vide");
+            return Optional.empty();
+        }
+
+        try {
+            // Normaliser l'URL pour la comparaison
+            String normalizedUrl = normalizeUrl(url);
+
+            //log.debug("Recherche de pièce jointe avec URL: {}", normalizedUrl);
+
+            // Rechercher toutes les pièces jointes non supprimées
+            List<PieceJointe> allPieces = pieceJointeRepository.findAll()
+                    .stream()
+                    .filter(pieceJointe -> !pieceJointe.isDeleted())
+                    .collect(Collectors.toList());
+
+            for (PieceJointe piece : allPieces) {
+                String pieceUrl = piece.getUrl();
+                if (pieceUrl != null) {
+                    String normalizedPieceUrl = normalizeUrl(pieceUrl);
+
+                    // Comparaison exacte
+                    if (normalizedPieceUrl.equals(normalizedUrl)) {
+                        //log.debug("Pièce jointe trouvée avec URL exacte: {}", piece.getId());
+                        return Optional.of(pieceJointeMapper.toDTO(piece));
+                    }
+
+                    // Comparaison par nom de fichier si l'URL exacte ne correspond pas
+                    String pieceFileName = extractFileNameFromPath(normalizedPieceUrl);
+                    String searchFileName = extractFileNameFromPath(normalizedUrl);
+
+                    if (pieceFileName != null && searchFileName != null &&
+                            pieceFileName.equals(searchFileName)) {
+                        //log.debug("Pièce jointe trouvée par nom de fichier: {}", piece.getId());
+                        return Optional.of(pieceJointeMapper.toDTO(piece));
+                    }
+                }
+            }
+
+            //log.warn("Aucune pièce jointe trouvée pour l'URL: {}", normalizedUrl);
+            return Optional.empty();
+
+        } catch (Exception e) {
+            //log.error("Erreur lors de la recherche de pièce jointe par URL: {}", url, e);
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Normalise une URL pour faciliter les comparaisons
+     * @param url L'URL à normaliser
+     * @return L'URL normalisée
+     */
+    private String normalizeUrl(String url) {
+        if (url == null) {
+            return "";
+        }
+
+        // Convertir les antislashes en slashes
+        String normalized = url.replace("\\", "/");
+
+        // Supprimer les espaces en début et fin
+        normalized = normalized.trim();
+
+        return normalized;
+    }
+
+    /**
+     * Extrait le nom de fichier depuis un chemin
+     * @param path Le chemin du fichier
+     * @return Le nom du fichier ou null si non trouvé
+     */
+    private String extractFileNameFromPath(String path) {
+        if (path == null || path.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            // Utiliser Path pour extraire le nom de fichier
+            Path filePath = Paths.get(path);
+            return filePath.getFileName().toString();
+        } catch (Exception e) {
+            // Fallback manuel si Path.get() échoue
+            String normalizedPath = path.replace("\\", "/");
+            int lastSlash = normalizedPath.lastIndexOf("/");
+            if (lastSlash >= 0 && lastSlash < normalizedPath.length() - 1) {
+                return normalizedPath.substring(lastSlash + 1);
+            }
+            return normalizedPath; // Retourner le path complet si pas de séparateur trouvé
+        }
+    }
+
 }
 
 

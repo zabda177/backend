@@ -182,56 +182,7 @@ public class DemandeController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-//    @PostMapping("/soumission-complete")
-//    public ResponseEntity<DemandeDTO> soumissionComplete(
-//            @RequestParam(value = "demande", required = true) String demandeJson,
-//            @RequestParam(value = "personnePhysique", required = false) String personnePhysiqueJson,
-//            @RequestParam(value = "personneMorale", required = false) String personneMoraleJson,
-//            @RequestParam(value = "fichiers", required = false) MultipartFile[] fichiers) {
-//
-//        try {
-////            ObjectMapper objectMapper = new ObjectMapper();
-////            // Configurer l'ObjectMapper pour ignorer les propriétés inconnues
-////            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-////
-////            // Conversion des JSON en objets
-////            DemandeDTO demandeDTO = objectMapper.readValue(demandeJson, DemandeDTO.class);
-//
-//            ObjectMapper objectMapper = new ObjectMapper();
-//            // Configurer l'ObjectMapper pour ignorer les propriétés inconnues
-//            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-//            // Enregistrer le module pour la prise en charge des dates Java 8
-//            objectMapper.registerModule(new JavaTimeModule());
-//
-//            // Conversion des JSON en objets
-//            DemandeDTO demandeDTO = objectMapper.readValue(demandeJson, DemandeDTO.class);
-//
-//
-//            // Déterminer le type de demandeur
-//            if (personnePhysiqueJson != null) {
-//                PersonnePhysiqueDTO personnePhysiqueDTO = objectMapper.readValue(personnePhysiqueJson, PersonnePhysiqueDTO.class);
-//                demandeDTO.setPersonnePhysiqueDTO(personnePhysiqueDTO);
-//                demandeDTO.setTypeDemandeur("Personne physique");
-//            } else if (personneMoraleJson != null) {
-//                PersonneMoraleDTO personneMoraleDTO = objectMapper.readValue(personneMoraleJson, PersonneMoraleDTO.class);
-//                demandeDTO.setPersonneMoraleDTO(personneMoraleDTO);
-//                demandeDTO.setTypeDemandeur("Personne morale");
-//            }
-//
-//            // Créer la demande
-//            DemandeDTO createdDemande = demandeService.createDemande(demandeDTO);
-//
-//            // Gérer les pièces jointes si présentes
-//            if (fichiers != null && fichiers.length > 0) {
-//                pieceJointeService.savePiecesJointes(createdDemande.getId(), fichiers);
-//            }
-//
-//            return ResponseEntity.status(HttpStatus.CREATED).body(createdDemande);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-//        }
-//    }
+
 
     @PostMapping("/soumission-complete")
     public ResponseEntity<DemandeDTO> soumissionComplete(
@@ -305,6 +256,8 @@ public class DemandeController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+
 
 
 

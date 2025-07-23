@@ -19,6 +19,40 @@ public interface DashboardRepository extends JpaRepository<Demande, Long> {
 
     // Trouver les demandes par statut
     List<Demande> findByStatut(String statut);
+
+
+    /**
+     * Compter les demandes par statut et type de demande
+     * @param statut Le statut de la demande
+     * @param typeDemande Le type de demande
+     * @return Le nombre de demandes avec ce statut et ce type
+     */
+    @Query("SELECT COUNT(d) FROM Demande d WHERE d.statut = :statut AND d.typeDemande = :typeDemande")
+    long countByStatutAndTypeDemande(@Param("statut") String statut, @Param("typeDemande") String typeDemande);
+
+
+
+    /**
+     * Requêtes spécifiques pour chaque type de demande validée
+     * Ces requêtes peuvent être utilisées comme alternatives si les noms des types
+     * dans votre base de données sont différents
+     */
+
+    @Query("SELECT COUNT(d) FROM Demande d WHERE d.statut = 'VALIDÉ' AND (d.typeDemande LIKE '%PERMIS%' OR d.typeDemande LIKE '%PECHE%')")
+    long countPermispechesValides();
+
+    @Query("SELECT COUNT(d) FROM Demande d WHERE d.statut = 'VALIDÉ' AND (d.typeDemande LIKE '%LICENCE%' AND d.typeDemande LIKE '%GUIDE%')")
+    long countLicencesGuidesValidees();
+
+    @Query("SELECT COUNT(d) FROM Demande d WHERE d.statut = 'VALIDÉ' AND (d.typeDemande LIKE '%LICENCE%' AND d.typeDemande LIKE '%COMMERCIALE%')")
+    long countLicencesCommercialesValidees();
+
+    @Query("SELECT COUNT(d) FROM Demande d WHERE d.statut = 'VALIDÉ' AND d.typeDemande LIKE '%CONCESSION%'")
+    long countConcessionsValidees();
+
+    @Query("SELECT COUNT(d) FROM Demande d WHERE d.statut = 'VALIDÉ' AND (d.typeDemande LIKE '%CREATION%' AND d.typeDemande LIKE '%ETABLISSEMENT%')")
+    long countCreationsEtablissementsValidees();
+
 }
 
 

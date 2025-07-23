@@ -14,12 +14,17 @@ import projet_soutenance.dsi.service.PieceJointeService;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
 
 @RestController
 @RequestMapping("/api/piece")
@@ -135,16 +140,19 @@ public class PieceJointeController {
         }
         return ResponseEntity.notFound().build();
     }
-
-
-    // Méthode pour télécharger un fichier par son nom
-    @GetMapping("/download/{fileName:.+}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) {
+    @GetMapping("/download-by-url")
+    public ResponseEntity<Resource> downloadFileByUrl(@RequestParam String url) {
         try {
-            // Récupérer les informations sur le fichier à partir du nom
-            Optional<PieceJointeDTO> pieceJointeOpt = pieceJointeService.getPieceJointeByFileName(fileName);
+            // Décoder l'URL reçue
+            String decodedUrl = URLDecoder.decode(url, StandardCharsets.UTF_8);
+
+            //log.info("Tentative de téléchargement du fichier avec URL: {}", decodedUrl);
+
+            // Récupérer les informations sur le fichier à partir de l'URL
+            Optional<PieceJointeDTO> pieceJointeOpt = pieceJointeService.getPieceJointeByUrl(decodedUrl);
 
             if (pieceJointeOpt.isEmpty()) {
+               // log.warn("Fichier non trouvé pour l'URL: {}", decodedUrl);
                 return ResponseEntity.notFound().build();
             }
 
@@ -155,6 +163,7 @@ public class PieceJointeController {
             Resource resource = new FileSystemResource(file);
 
             if (!resource.exists()) {
+               // log.warn("Le fichier physique n'existe pas: {}", file.getAbsolutePath());
                 return ResponseEntity.notFound().build();
             }
 
@@ -164,13 +173,59 @@ public class PieceJointeController {
                 contentType = "application/octet-stream";
             }
 
+            // Extraire le nom de fichier depuis l'URL ou utiliser le libellé
+            String fileName = extractFileNameFromUrl(pieceJointe.getUrl());
+            if (fileName == null || fileName.trim().isEmpty()) {
+                fileName = pieceJointe.getLibelle();
+                if (fileName == null || fileName.trim().isEmpty()) {
+                    fileName = "fichier_telecharge";
+                }
+            }
+
+            // Encoder le nom de fichier pour les caractères spéciaux
+            String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8)
+                    .replaceAll("\\+", "%20");
+
+            //log.info("Téléchargement réussi du fichier: {} (taille: {} octets)", fileName, file.length());
+
             // Configurer les en-têtes de la réponse
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename*=UTF-8''" + encodedFileName)
+                    .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(file.length()))
                     .body(resource);
+
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            //log.error("Erreur lors du téléchargement du fichier avec URL: {}", url, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
+    }
+
+    /**
+     * Extrait le nom de fichier depuis une URL/chemin
+     * @param url L'URL ou le chemin du fichier
+     * @return Le nom du fichier ou null si non trouvé
+     */
+    private String extractFileNameFromUrl(String url) {
+        if (url == null || url.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            Path path = Paths.get(url);
+            return path.getFileName().toString();
+        } catch (Exception e) {
+            // Si le parsing du Path échoue, essayer avec les séparateurs de chemin
+            if (url.contains("/")) {
+                String[] parts = url.split("/");
+                return parts[parts.length - 1];
+            } else if (url.contains("\\")) {
+                String[] parts = url.split("\\\\");
+                return parts[parts.length - 1];
+            }
+            return null;
         }
     }
 
